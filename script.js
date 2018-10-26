@@ -6,6 +6,7 @@ var Colors = {
 	pink:0xF5986E,
 	brownDark:0x23190f,
 	blue:0x68c3c0,
+	fogBlue:0x4277a6
 };
 
 // Variables for the scene
@@ -25,7 +26,8 @@ var mousePos={x:0, y:0};
 
 var waveUp = 77.5;
 var waveDown = 73.5;
-var waveTarget = waveUp;
+var boatUp = true;
+var boatRotUp = true;
 
 
 // Wait until window loads to run init
@@ -64,7 +66,7 @@ function createScene() {
 
 	// Add a fog effect to the scene; same color as the
 	// background color used in the style sheet
-	scene.fog = new THREE.Fog(0xf7d9aa, 100, 950);
+	scene.fog = new THREE.Fog(Colors['white'], 100, 950);
 
 	// Create the camera
 	aspectRatio = WIDTH / HEIGHT;
@@ -381,8 +383,8 @@ function createSea(){
 
 function loop(){
 	// Rotate the propeller, the sea and the sky
-	sea.mesh.rotation.z += .0005;
-	sky.mesh.rotation.z += .001;
+	sea.mesh.rotation.z += .0001;
+	sky.mesh.rotation.z += .0001;
 
   // Update boat location
   updateBoat();
@@ -404,14 +406,28 @@ function updateBoat() {
 	var targetX = normalize(mousePos.x, -1, 1, -50, 50);
 	var targetZ = normalize(mousePos.y, -1, 1, -50, 50);
 
-	// update the airplane's position
+		// update the boat's position
 	boat.mesh.position.z += (targetZ - boat.mesh.position.z)*0.01;
 	boat.mesh.position.x += (targetX - boat.mesh.position.x)*0.01;
 
-	if (boat.mesh.position.y >= waveUp) { waveTarget = waveDown; }
-	else if (boat.mesh.position.y <= waveDown) { waveTarget = waveUp; }
+	//if (boat.mesh.position.y >= waveUp) { waveTarget = waveDown; }
+	//else if (boat.mesh.position.y <= waveDown) { waveTarget = waveUp; }
 
-	boat.mesh.position.y += 0.5 * (waveTarget - boat.mesh.position.y);
+	if (boatUp) {
+		boat.mesh.position.y += 0.015;
+		if (boatRotUp) { boat.mesh.rotation.z = (waveUp - boat.mesh.position.y)*0.007; }
+		else {boat.mesh.rotation.z = (boat.mesh.position.y - waveUp)*0.007}
+	} else {
+		boat.mesh.position.y -= 0.015;
+		if (boatRotUp) { boat.mesh.rotation.z = (waveUp - boat.mesh.position.y)*-0.007; }
+		else {boat.mesh.rotation.z = (boat.mesh.position.y - waveUp)*-0.007}
+	}
+
+	if (boat.mesh.position.y > waveUp) { boatUp = false; }
+	if (boat.mesh.position.y < waveDown) {boatUp = true; boatRotUp = !boatRotUp; }
+	//boat.mesh.position.y += (waveTarget - boat.mesh.position.y)*0.01;
+
+
 }
 
 function normalize(v,vmin,vmax,tmin, tmax){
